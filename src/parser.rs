@@ -1,13 +1,16 @@
+//! Parser functions for XDF, general flow is a loop that grabs the next
+//! This is likely not the best way of doing this, but it was fairly easy to write as a MVP.
+//! Should be rewritten later.
+
 use std::str::FromStr;
 
 use xml::{attribute::OwnedAttribute, reader::XmlEvent, EventReader};
 
 use crate::{data_types::*, error::Error};
 
-pub trait FromXml: Sized {
-    fn from_xml<R: std::io::Read>(parser: &mut EventReader<R>) -> Result<Self, Error>;
-}
-
+/// Reads a string from an XML characters event, used to parse data stored within an element rather than as an attribute.
+/// e.g. `<title>DATAHERE</title>`
+/// If there is no data present an empty string is returned.
 fn from_chars<R: std::io::Read>(parser: &mut EventReader<R>) -> Result<String, Error> {
     let next = parser.next()?;
     let mut end = false;
@@ -25,6 +28,8 @@ fn from_chars<R: std::io::Read>(parser: &mut EventReader<R>) -> Result<String, E
     res
 }
 
+/// Parses an integer, stored in base10 or base16 ASCII.
+/// If string starts with `0x` assumes base16, otherwise base10.
 fn parse_int(from: &str) -> Result<u32, Error> {
     let stripped = from.strip_prefix("0x");
     if let Some(hex) = stripped {
@@ -34,14 +39,17 @@ fn parse_int(from: &str) -> Result<u32, Error> {
     }
 }
 
+/// Convenience function to use `parse_int` on the output of `get_attr`
 fn int_attr(attrs: &Vec<OwnedAttribute>, name: &str) -> Result<u32, Error> {
     parse_int(&get_attr(attrs, name)?)
 }
 
+/// Convenience function to parse the output of `from_chars`
 fn parse_chars<R: std::io::Read, T: FromStr>(parser: &mut EventReader<R>) -> Result<T, Error> {
     from_chars(parser)?.parse().map_err(|_| Error::BadValue)
 }
 
+/// Gets the string value of a named attribute
 fn get_attr(attrs: &Vec<OwnedAttribute>, name: &str) -> Result<String, Error> {
     for attr in attrs {
         if attr.name.local_name == name {
@@ -51,10 +59,16 @@ fn get_attr(attrs: &Vec<OwnedAttribute>, name: &str) -> Result<String, Error> {
     return Err(Error::MissingItem);
 }
 
+/// Convenience function to parse the output of `get_attr`, use `int_attr` instead when possible.
 fn get_attr_parse<T: FromStr>(attrs: &Vec<OwnedAttribute>, name: &str) -> Result<T, Error> {
     get_attr(attrs, name)?.parse().map_err(|_| Error::BadValue)
 }
 
+/// Creates a function that builds an object by looping over an XmlReader.
+/// Has three ways of defining a field, either from another type of known XMLElement that can be parsed by `XDFElement::from_xml`.
+/// Or, a list of elements of the same type.
+/// Or, an element that requires an external function to parse, usually stored in an attribute.
+/// The generated function consumes any end of element events.
 macro_rules! build_obj {
     ($parser:ident,$name:expr,$type:ident,[$($fieldname:ident ; $fieldsource:ident),*]) => {build_obj!($parser, $name, $type, [$($fieldname;$fieldsource),*],[],[])};
     ($parser:ident,$name:expr,$type:ident,[$($fieldname:ident ; $fieldsource:ident),*], [$($fieldn:ident ; $fieldcalc:block),*],[$($vfname:ident;$vfsource:ident),*]) => {
@@ -102,13 +116,18 @@ macro_rules! build_obj {
                 $fname: $fsource,
             )*
         });
-        $parser.next()?;
-        r
+        let next = XDFElement::from_xml($parser)?;
+        if let XDFElement::End(_) = next {
+            r
+        } else {
+            Err(Error::UnexpectedElement(next))?
+        }
     }}
 }
 
-impl FromXml for XDFElement {
-    fn from_xml<R: std::io::Read>(parser: &mut EventReader<R>) -> Result<Self, Error> {
+impl XDFElement {
+    /// Parses either an entire XDF document, or a single element (including all it's children)
+    pub fn from_xml<R: std::io::Read>(parser: &mut EventReader<R>) -> Result<Self, Error> {
         let next;
         loop {
             let current = parser.next()?;

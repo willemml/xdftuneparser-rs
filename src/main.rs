@@ -4,7 +4,6 @@
 use std::io::BufReader;
 use std::{fs::File, io::Read};
 
-use parser::FromXml;
 use xml::reader::EventReader;
 use xml::ParserConfig;
 
