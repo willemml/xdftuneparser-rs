@@ -1,6 +1,6 @@
 [package]
-name = "tune"
-version = "0.1.0"
+name = "xdftuneparser"
+version = "0.0.1"
 edition = "2021"
 
 [dependencies]
