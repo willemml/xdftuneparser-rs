@@ -141,6 +141,8 @@ impl XDFElement {
                     "title" | "deftitle" => Self::Title(from_chars(parser)?),
                     "description" => Self::Description(from_chars(parser)?),
                     "units" => Self::Units(from_chars(parser)?),
+                    "author" => Self::Author(from_chars(parser)?),
+                    "fileversion" => Self::FileVersion(from_chars(parser)?),
                     "indexcount" => Self::IndexCount(parse_chars(parser)?),
                     "datatype" => Self::DataType(parse_chars(parser)?),
                     "unittype" => Self::UnitType(parse_chars(parser)?),
@@ -232,7 +234,9 @@ impl XDFElement {
                         baseoffset; BaseOffset,
                         defaults; Defaults,
                         region; Region,
-                        flags; Flags
+                        flags; Flags,
+                        fileversion; FileVersion,
+                        author; Author
                     ]),
                     "XDFAXIS" => build_obj!(parser, "XDFAXIS", XDFAxis, [
                         embeddeddata; EmbeddedData,
@@ -257,8 +261,10 @@ impl XDFElement {
                         embedded_data; EmbeddedData,
                         title; Title,
                         description; Description,
+                        outputtype; OutputType,
                         catmem; CategoryMem,
                         datatype; DataType,
+                        decimalplaces; DecimalPl,
                         unittype; UnitType,
                         unit; Units,
                         math; Math,

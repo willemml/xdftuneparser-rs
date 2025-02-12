@@ -48,6 +48,8 @@ pub struct Category {
 pub struct XDFHeader {
     pub deftitle: Option<String>,
     pub description: Option<String>,
+    pub fileversion: Option<String>,
+    pub author: Option<String>,
     pub baseoffset: Option<u32>,
     pub defaults: Option<Defaults>,
     pub region: Option<Region>,
@@ -83,6 +85,8 @@ pub enum XDFElement {
     Description(String),
     XDFHeader(XDFHeader),
     Region(Region),
+    FileVersion(String),
+    Author(String),
     Defaults(Defaults),
     Category(Category),
     XDFFormat(XDFFormat),
@@ -272,8 +276,10 @@ pub struct XDFConstant {
     pub catmem: Option<CategoryMem>, // ?
     pub uid: Option<String>,         // uniqueid, doesnt actually seem to be unique
     pub embedded_data: Option<EmbeddedData>,
-    pub datatype: Option<u32>, // unknown
-    pub unittype: Option<u32>, // unknown
+    pub decimalplaces: Option<u32>,
+    pub datatype: Option<u32>,   // unknown
+    pub unittype: Option<u32>,   // unknown
+    pub outputtype: Option<u32>, // unknown
     pub unit: Option<String>,
     pub dalink_index: Option<u32>, // unknown
     pub math: Option<Math>,
