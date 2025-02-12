@@ -283,8 +283,8 @@ pub struct XDFConstant {
 /// This is likely only used for display purposes.
 #[derive(Debug, Default, Clone)]
 pub struct XDFAxis {
-    pub id: Option<String>,  // name
-    pub uid: Option<String>, // uniqueid, doesnt actually seem to be unique
+    pub id: Option<String>, // name
+    pub uid: Option<u32>,   // uniqueid, doesnt actually seem to be unique
     pub embeddeddata: Option<EmbeddedData>,
     pub datatype: Option<u32>,
     pub unittype: Option<u32>,
@@ -307,7 +307,7 @@ pub struct XDFAxis {
 #[derive(Debug, Default, Clone)]
 pub struct XDFTable {
     pub title: Option<String>, // obvious
-    pub uid: Option<String>,   // bitcount?
+    pub uid: Option<u32>,      // bitcount?
     pub flags: Option<u32>,    // bitcount? purpose unknown
     pub catmem: Option<CategoryMem>,
     pub description: Option<String>,

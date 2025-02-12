@@ -221,7 +221,7 @@ impl XDFElement {
                         description; Description,
                         catmem; CategoryMem
                     ],[
-                        uid; {get_attr_parse(&attributes, "uniqueid").ok()}
+                        uid; {int_attr(&attributes, "uniqueid").ok()}
                     ],[
                         axis; XDFAxis
                     ]),
@@ -249,7 +249,7 @@ impl XDFElement {
                         embedinfo; EmbedInfo
                     ], [
                         id; {get_attr(&attributes, "id").ok()},
-                        uid; {get_attr(&attributes, "uniqueid").ok()}
+                        uid; {int_attr(&attributes, "uniqueid").ok()}
                     ],[
                         labels; Label
                     ]),
