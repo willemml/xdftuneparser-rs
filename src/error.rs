@@ -2,7 +2,7 @@ use xml::reader::XmlEvent;
 
 use crate::data_types::XDFElement;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
     MissingItem,
     BadValue,

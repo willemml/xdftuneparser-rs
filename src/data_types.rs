@@ -6,7 +6,7 @@
 //! Because of this, all addresses and sizes have a datatype of u32, in some cases these will be later converted to usize for use in Rust code, but that is not in scope for this module.
 
 /// How values are shown to the user. These mappings to numbers may be wrong.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Copy, Eq)]
 #[repr(u8)]
 pub enum OutputType {
     Float = 0,
@@ -16,7 +16,7 @@ pub enum OutputType {
 }
 
 /// Purpose unknown. Used in XDFHEADER
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Region {
     pub rtype: Option<u32>,
     pub startaddress: Option<u32>,
@@ -25,7 +25,7 @@ pub struct Region {
 }
 
 /// Default configuration for items as defined in XDFHEADER
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Defaults {
     pub datasizeinbits: Option<u32>,
     pub sigdigits: Option<u32>,
@@ -36,7 +36,7 @@ pub struct Defaults {
 }
 
 /// Data category for displaying XDF items
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Category {
     pub index: Option<u32>,
     pub name: Option<String>,
@@ -44,7 +44,7 @@ pub struct Category {
 
 /// Header for XDF files, contains basic info such as origin of file.
 /// Definition incomplete.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct XDFHeader {
     pub deftitle: Option<String>,
     pub description: Option<String>,
@@ -59,14 +59,14 @@ pub struct XDFHeader {
 }
 
 /// Labels for XDFAXIS
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Label {
     pub index: Option<u32>,
     /// This may be wrong, but it seems these are only used for user defined values anyways, not calculations.
     pub value: Option<String>,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct EmbedInfo {
     /// Unknown Purpose
     /// linked axis: 3
@@ -78,7 +78,7 @@ pub struct EmbedInfo {
 }
 
 /// Individual elements and their sub elements that can be found in an XML formatted XDF filke
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum XDFElement {
     End(String),
     Title(String),
@@ -233,7 +233,7 @@ pub enum XDFElement {
 /// Operations to perform on a value before displaying or writing it.
 /// Seems ususally have a single variable (X) which is the value stored in the bin.
 /// There is generally only a factor and or a constant to be applied.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Math {
     /// Variables used in equation, usually just X
     pub vars: Vec<String>,
@@ -242,7 +242,7 @@ pub struct Math {
     pub expression: Option<String>,
 }
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, PartialEq, Copy)]
 pub struct CategoryMem {
     pub index: Option<u32>,
     pub category: Option<u32>,
@@ -252,7 +252,7 @@ pub struct CategoryMem {
 /// When rowcount and colcount are both greater than 1, each row is written sequentially.
 /// For example with 8 rows of 16 columns, you would write each of the 16 column values for a row before writing the next row.
 /// Data is stored in a one dimensional array :)
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, PartialEq, Copy)]
 pub struct EmbeddedData {
     /// Base address (relative to start of file) of data
     pub mmedaddress: Option<u32>,
@@ -269,7 +269,7 @@ pub struct EmbeddedData {
 }
 
 /// Single value constant, unsure of practical difference between this and a 0x0x1 table.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct XDFConstant {
     pub title: Option<String>,
     pub description: Option<String>,
@@ -287,7 +287,7 @@ pub struct XDFConstant {
 
 /// Axis definition for a table, generally contains a series of labels (non stored values) or a data location (values stored in bin)
 /// This is likely only used for display purposes.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct XDFAxis {
     pub id: Option<String>, // name
     pub uid: Option<u32>,   // uniqueid, doesnt actually seem to be unique
@@ -310,7 +310,7 @@ pub struct XDFAxis {
 /// Table, contains multiple (three seems to be common) axis
 /// For some reason, instead of having multiple editeable axis, some tables will have a sepearate linked table defining an editable (stored) axis.
 /// TVUB is an example of this with its axis data being stored in TVUB_AXIS.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct XDFTable {
     pub title: Option<String>, // obvious
     pub uid: Option<u32>,      // bitcount?
@@ -321,7 +321,7 @@ pub struct XDFTable {
 }
 
 /// A complete XDF file
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct XDFFormat {
     pub version: Option<String>,
     pub tables: Vec<XDFTable>,

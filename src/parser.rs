@@ -4,7 +4,7 @@
 
 use std::str::FromStr;
 
-use xml::{attribute::OwnedAttribute, reader::XmlEvent, EventReader};
+use xml::{attribute::OwnedAttribute, name::OwnedName, reader::XmlEvent, EventReader};
 
 use crate::{data_types::*, error::Error};
 
@@ -33,9 +33,9 @@ fn from_chars<R: std::io::Read>(parser: &mut EventReader<R>) -> Result<String, E
 fn parse_int(from: &str) -> Result<u32, Error> {
     let stripped = from.strip_prefix("0x");
     if let Some(hex) = stripped {
-        u32::from_str_radix(hex, 16).map_err(|_| Error::BadValue)
+        u32::from_str_radix(hex, 16).map_err(|_| panic!("Error::BadValue"))
     } else {
-        from.parse().map_err(|_| Error::BadValue)
+        from.parse().map_err(|_| panic!("Error::BadValue"))
     }
 }
 
@@ -137,7 +137,7 @@ impl XDFElement {
             next = Some(match current {
                 xml::reader::XmlEvent::StartElement {
                     name, attributes, ..
-                } => match name.local_name.as_str() {
+                } => match name.local_name.to_lowercase().as_str() {
                     "title" | "deftitle" => Self::Title(from_chars(parser)?),
                     "description" => Self::Description(from_chars(parser)?),
                     "units" => Self::Units(from_chars(parser)?),
@@ -151,13 +151,19 @@ impl XDFElement {
                     "flags" => Self::Flags(parse_int(&from_chars(parser)?)?),
                     "min" => Self::Min(parse_chars(parser)?),
                     "max" => Self::Max(parse_chars(parser)?),
-                    "baseoffset" => Self::BaseOffset(parse_int(&from_chars(parser)?)?),
-                    "DALINK" => {
+                    "baseoffset" => {
+                        if let Ok(offset) = get_attr_parse(&attributes, "offset") {
+                            Self::BaseOffset(offset)
+                        } else {
+                            Self::BaseOffset(parse_int(&from_chars(parser)?)?)
+                        }
+                    }
+                    "dalink" => {
                         let r = Self::DALink(get_attr_parse(&attributes, "index")?);
                         parser.next()?;
                         r
                     }
-                    "VAR" => {
+                    "var" => {
                         let r = Self::Var(get_attr_parse(&attributes, "id")?);
                         parser.next()?;
                         r
@@ -166,7 +172,7 @@ impl XDFElement {
                         etype: int_attr(&attributes, "type").ok(),
                         linkobjid: int_attr(&attributes, "linkobjid").ok(),
                     ]),
-                    "DEFAULTS" => build_obj!(parser, Defaults, [
+                    "defaults" => build_obj!(parser, Defaults, [
                         datasizeinbits: int_attr(&attributes, "datasizeinbits").ok(),
                         sigdigits: int_attr(&attributes, "sigdigits").ok(),
                         outputtype: int_attr(&attributes, "outputtype").ok(),
@@ -174,21 +180,21 @@ impl XDFElement {
                         lsbfirst: int_attr(&attributes, "lsbfirst").ok(),
                         float: int_attr(&attributes, "float").ok(),
                     ]),
-                    "CATEGORY" => build_obj!(parser, Category,[
+                    "category" => build_obj!(parser, Category,[
                         index: int_attr(&attributes, "index").ok(),
                         name: get_attr(&attributes, "name").ok(),
                     ]),
-                    "REGION" => build_obj!(parser, Region,[
+                    "region" => build_obj!(parser, Region,[
                         rtype: int_attr(&attributes, "type").ok(),
                         startaddress: int_attr(&attributes, "startaddress").ok(),
                         size: int_attr(&attributes, "size").ok(),
                         regionflags: int_attr(&attributes, "regionflags").ok(),
                     ]),
-                    "CATEGORYMEM" => build_obj!(parser, CategoryMem, [
+                    "categorymem" => build_obj!(parser, CategoryMem, [
                         index: get_attr_parse(&attributes, "index").ok(),
                         category: get_attr_parse(&attributes, "category").ok(),
                     ]),
-                    "EMBEDDEDDATA" => build_obj!(parser, EmbeddedData, [
+                    "embeddeddata" => build_obj!(parser, EmbeddedData, [
                         mmedaddress: int_attr(&attributes, "mmedaddress").ok(),
                         mmedelementsizebits: get_attr_parse(&attributes, "mmedelementsizebits").ok(),
                         mmedmajorstridebits: get_attr_parse(&attributes, "mmedmajorstridebits").ok(),
@@ -197,19 +203,19 @@ impl XDFElement {
                         mmedrowcount: get_attr_parse(&attributes, "mmedrowcount").ok(),
                         mmedcolcount: get_attr_parse(&attributes, "mmedcolcount").ok(),
                     ]),
-                    "LABEL" => build_obj!(parser, Label, [
+                    "label" => build_obj!(parser, Label, [
                         index: get_attr_parse(&attributes, "index").ok(),
                         value: get_attr_parse(&attributes, "value").ok(),
                     ]),
-                    "MATH" => build_obj!(
+                    "math" => build_obj!(
                         parser,
-                        "MATH",
+                        "math",
                         Math,
                         [],
                         [expression; { get_attr_parse(&attributes, "equation").ok() }],
                         [vars; Var]
                     ),
-                    "XDFFORMAT" => build_obj!(parser, "XDFFORMAT", XDFFormat, [
+                    "xdfformat" => build_obj!(parser, "xdfformat", XDFFormat, [
                         header; XDFHeader
                     ], [
                         version; {get_attr_parse(&attributes, "version").ok()}
@@ -217,7 +223,7 @@ impl XDFElement {
                         constants; XDFConstant,
                         tables; XDFTable
                     ]),
-                    "XDFTABLE" => build_obj!(parser, "XDFTABLE", XDFTable, [
+                    "xdftable" => build_obj!(parser, "xdftable", XDFTable, [
                         title; Title,
                         flags; Flags,
                         description; Description,
@@ -227,7 +233,7 @@ impl XDFElement {
                     ],[
                         axis; XDFAxis
                     ]),
-                    "XDFHEADER" => build_obj!(parser, "XDFHEADER", XDFHeader, [
+                    "xdfheader" => build_obj!(parser, "xdfheader", XDFHeader, [
                         category; Category,
                         deftitle; Title,
                         description; Description,
@@ -238,7 +244,7 @@ impl XDFElement {
                         fileversion; FileVersion,
                         author; Author
                     ]),
-                    "XDFAXIS" => build_obj!(parser, "XDFAXIS", XDFAxis, [
+                    "xdfaxis" => build_obj!(parser, "xdfaxis", XDFAxis, [
                         embeddeddata; EmbeddedData,
                         min; Min,
                         max; Max,
@@ -257,7 +263,7 @@ impl XDFElement {
                     ],[
                         labels; Label
                     ]),
-                    "XDFCONSTANT" => build_obj!(parser, "XDFCONSTANT", XDFConstant, [
+                    "xdfconstant" => build_obj!(parser, "xdfconstant", XDFConstant, [
                         embedded_data; EmbeddedData,
                         title; Title,
                         description; Description,
@@ -272,12 +278,30 @@ impl XDFElement {
                     ],[
                         uid; {get_attr_parse(&attributes, "uniqueid").ok()}
                     ],[]),
+                    "xdfpatch" | "xdfflag" | "xdfchecksum" => {
+                        loop {
+                            let event = parser.next()?;
+                            let end1 = XmlEvent::EndElement {
+                                name: OwnedName::local("XDFPATCH"),
+                            };
+                            let end2 = XmlEvent::EndElement {
+                                name: OwnedName::local("XDFFLAG"),
+                            };
+                            let end3 = XmlEvent::EndElement {
+                                name: OwnedName::local("XDFCHECKSUM"),
+                            };
+                            if event == end1 || event == end2 || event == end3 {
+                                break;
+                            }
+                        }
+                        continue;
+                    }
                     u => {
                         dbg!(u);
                         return Err(Error::UnknownType);
                     }
                 },
-                XmlEvent::EndElement { name } => Self::End(name.local_name),
+                XmlEvent::EndElement { name } => Self::End(name.local_name.to_lowercase()),
                 e => return Err(Error::UnexpectedEvent(e)),
             });
             break;
