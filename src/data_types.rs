@@ -55,7 +55,7 @@ pub struct XDFHeader {
     pub region: Option<Region>,
     pub flags: Option<u32>,
     // Could be array?
-    pub category: Option<Category>,
+    pub category: Vec<Category>,
 }
 
 /// Labels for XDFAXIS
@@ -273,8 +273,8 @@ pub struct EmbeddedData {
 pub struct XDFConstant {
     pub title: Option<String>,
     pub description: Option<String>,
-    pub catmem: Option<CategoryMem>, // ?
-    pub uid: Option<String>,         // uniqueid, doesnt actually seem to be unique
+    pub catmem: Vec<CategoryMem>, // ?
+    pub uid: Option<String>,      // uniqueid, doesnt actually seem to be unique
     pub embedded_data: Option<EmbeddedData>,
     pub decimalplaces: Option<u32>,
     pub datatype: Option<u32>,   // unknown
@@ -315,7 +315,7 @@ pub struct XDFTable {
     pub title: Option<String>, // obvious
     pub uid: Option<u32>,      // bitcount?
     pub flags: Option<u32>,    // bitcount? purpose unknown
-    pub catmem: Option<CategoryMem>,
+    pub catmem: Vec<CategoryMem>,
     pub description: Option<String>,
     pub axis: Vec<XDFAxis>, // duh
 }

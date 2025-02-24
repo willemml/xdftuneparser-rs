@@ -226,15 +226,14 @@ impl XDFElement {
                     "xdftable" => build_obj!(parser, "xdftable", XDFTable, [
                         title; Title,
                         flags; Flags,
-                        description; Description,
-                        catmem; CategoryMem
+                        description; Description
                     ],[
                         uid; {int_attr(&attributes, "uniqueid").ok()}
                     ],[
+                        catmem; CategoryMem,
                         axis; XDFAxis
                     ]),
                     "xdfheader" => build_obj!(parser, "xdfheader", XDFHeader, [
-                        category; Category,
                         deftitle; Title,
                         description; Description,
                         baseoffset; BaseOffset,
@@ -243,6 +242,8 @@ impl XDFElement {
                         flags; Flags,
                         fileversion; FileVersion,
                         author; Author
+                    ],[],[
+                        category; Category
                     ]),
                     "xdfaxis" => build_obj!(parser, "xdfaxis", XDFAxis, [
                         embeddeddata; EmbeddedData,
@@ -268,7 +269,6 @@ impl XDFElement {
                         title; Title,
                         description; Description,
                         outputtype; OutputType,
-                        catmem; CategoryMem,
                         datatype; DataType,
                         decimalplaces; DecimalPl,
                         unittype; UnitType,
@@ -277,7 +277,9 @@ impl XDFElement {
                         dalink_index; DALink
                     ],[
                         uid; {get_attr_parse(&attributes, "uniqueid").ok()}
-                    ],[]),
+                    ],[
+                        catmem; CategoryMem
+                    ]),
                     "xdfpatch" | "xdfflag" | "xdfchecksum" => {
                         loop {
                             let event = parser.next()?;
